@@ -1,0 +1,128 @@
+---
+title: "Drug Interactions"
+resource_files:
+- MonoSE.csv
+- SmallPolySE.csv
+runtime: shiny
+output:
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(shiny)
+library(ggplot2)
+data <- read.csv("SmallPolySE.csv")
+data2 <- read.csv("MonoSE.csv")
+#MergedPolySE <- na.omit(MergedPolySE)
+#MergedMonoSE <- na.omit(MergedMonoSE)
+```
+
+Poly Pharmacy Side Effects
+=======================================================================
+
+### Poly Pharmacy
+
+```{r}
+shinyApp(
+ui = fluidPage(
+  titlePanel("Basic DataTable"),
+
+  # Create a new Row in the UI for selectInputs
+  fluidRow(
+    column(4,
+        selectInput("man",
+                    "Drug 1:",
+                    c("All",
+                      unique(as.character(data$Drug1))))
+    ),
+    column(4,
+        selectInput("trans",
+                    "Drug 2:",
+                    c("All",
+                      unique(as.character(data$Drug2))))
+    ),
+    column(4,
+        selectInput("cyl",
+                    "Side Effects:",
+                    c("All",
+                      unique(as.character(data$Side.Effect.Name))))
+    )
+  ),
+  # Create a new row for the table.
+  DT::dataTableOutput("table")),
+
+server = function(input, output) {
+
+  # Filter data based on selections
+  output$table <- DT::renderDataTable(DT::datatable({
+    data <- data
+    if (input$man != "All") {
+      data <- subset(data, Drug1 == input$man)
+    }
+    if (input$trans != "All") {
+      data <- subset(data, Drug2 == input$trans)
+    }
+    if (input$cyl != "All") {
+      data <- subset(data, Side.Effect.Name == input$cyl)
+    }
+    
+    data
+  }))
+
+}
+
+)
+
+```
+
+Mono Pharmacy Side Effects
+=======================================================================
+
+### Mono Pharmacy
+
+```{r}
+shinyApp(
+ui = fluidPage(
+  titlePanel("Basic DataTable"),
+
+  # Create a new Row in the UI for selectInputs
+  fluidRow(
+    column(4,
+        selectInput("Drug",
+                    "Drug:",
+                    c("All",
+                      unique(as.character(data2$Column2))))
+    ),
+    column(4,
+        selectInput("SE",
+                    "Side Effect:",
+                    c("All",
+                      unique(as.character(data2$Side.Effect.Name))))
+    )
+
+  ),
+  # Create a new row for the table.
+  DT::dataTableOutput("table")),
+
+server = function(input, output) {
+
+  # Filter data based on selections
+  output$table <- DT::renderDataTable(DT::datatable({
+    data2 <- data2
+    if (input$Drug != "All") {
+      data2 <- subset(data2, Column2 == input$Drug)
+    }
+    if (input$SE != "All") {
+      data2 <- subset(data2, Side.Effect.Name == input$SE)
+    }
+    data2
+  }))
+
+}
+
+)
+
+```
